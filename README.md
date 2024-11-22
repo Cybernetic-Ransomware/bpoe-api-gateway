@@ -49,7 +49,10 @@ The purpose of this project is to build frame for the microservices.
 - The repository will include a Postman collection with ready-to-import webhook mockers
 
 #### Pytest
-- Will be described.
+```powershell
+poetry install --with dev
+poetry run pytest
+```
 
 #### Ruff
 - Ruff is included for linting. Run the tool with the command: `ruff chcek`
