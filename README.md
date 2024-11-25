@@ -26,8 +26,7 @@ The purpose of this project is to build frame for the microservices.
 2. Set .env file based on the template.
 3. Run using Docker:
       ```powershell
-      cd .\docker\
-      docker-compose up -d --build
+      docker-compose -f ./docker/docker-compose.yml up --build
       ```
 ### Dev-instance   
 1. Clone the repository:
