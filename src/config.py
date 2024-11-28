@@ -1,0 +1,12 @@
+from decouple import config
+
+
+config.search_path='./docker'
+
+AUTH0_CLIENT_ID = config('AUTH0_CLIENT_ID')
+AUTH0_CLIENT_SECRET = config('AUTH0_CLIENT_SECRET')
+AUTH0_DOMAIN = config('AUTH0_DOMAIN')
+APP_SECRET_KEY = config('APP_SECRET_KEY')
+AUTH0_API_AUDIENCE = config('AUTH0_API_AUDIENCE')
+AUTH0_ISSUER = config('AUTH0_ISSUER')
+AUTH0_ALGORITHMS = config('AUTH0_ALGORITHMS')
