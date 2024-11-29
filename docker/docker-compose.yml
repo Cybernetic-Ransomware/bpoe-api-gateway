@@ -6,7 +6,9 @@ services:
     image: am/bpoe-api-gateway:latest
     environment:
       - PYTHONUNBUFFERED=1
-      - PYTHONPATH=/src
+      - PYTHONPATH=/
+    env_file:
+      - .env
     restart: unless-stopped
     ports:
       - "8080:8080"
