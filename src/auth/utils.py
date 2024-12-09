@@ -5,7 +5,8 @@ from typing import Any
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from src.auth.config import set_up
-from src.auth.exceptions import TokenVerificationException, InvalidTokenSignatureException, TokenDecodeException, InvalidClaimException, InsufficientClaimException, PermissionsException
+from src.auth.exceptions import (TokenVerificationException, InvalidTokenSignatureException, TokenDecodeException,
+                                 InvalidClaimException, InsufficientClaimException, PermissionsException)
 
 
 token_auth_scheme = HTTPBearer()
@@ -29,9 +30,9 @@ class VerifyToken:
                 self.token
             ).key
         except jwt.exceptions.PyJWKClientError as error:
-            raise TokenVerificationException(detail=str(error))
+            raise TokenVerificationException(detail=str(error)) from error
         except jwt.exceptions.DecodeError as error:
-            raise InvalidTokenSignatureException(detail=str(error))
+            raise InvalidTokenSignatureException(detail=str(error)) from error
 
         try:
             payload = jwt.decode(
@@ -41,12 +42,12 @@ class VerifyToken:
                 audience=self.config["API_AUDIENCE"],
                 issuer=self.config["ISSUER"],
             )
-        except jwt.exceptions.ExpiredSignatureError:
-            raise TokenDecodeException(detail="Token has expired.")
-        except jwt.exceptions.InvalidAudienceError:
-            raise TokenDecodeException(detail="Invalid audience in token.")
+        except jwt.exceptions.ExpiredSignatureError as error:
+            raise TokenDecodeException(detail="Token has expired.")  from error
+        except jwt.exceptions.InvalidAudienceError as error:
+            raise TokenDecodeException(detail="Invalid audience in token.") from error
         except Exception as error:
-            raise TokenDecodeException(detail=str(error))
+            raise TokenDecodeException(detail=str(error)) from error
 
         if 'email' not in payload:
             raise InvalidClaimException('email')

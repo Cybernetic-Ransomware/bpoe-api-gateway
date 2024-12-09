@@ -10,10 +10,11 @@ from src.auth.utils import RoleVerifier
 router = APIRouter()
 token_auth_scheme = HTTPBearer()
 
-def verify_roles(token: HTTPAuthorizationCredentials = Depends(token_auth_scheme), allowed_roles: list[str | None] = None) -> bool:
+def verify_roles(token: HTTPAuthorizationCredentials = Depends(token_auth_scheme),  # noqa: B008
+                 allowed_roles: list[str | None] = None) -> bool:
     verifier = RoleVerifier(token, allowed_roles)
     return verifier.verify()
 
 @router.get("/priv", dependencies=[Depends(auth.implicit_scheme)])
-async def get_private(user: Auth0User = Security(auth.get_user), valid_roles: bool = Depends(verify_roles)):
+async def get_private(user: Auth0User = Security(auth.get_user), valid_roles: bool = Depends(verify_roles)):  # noqa: B008
     return {"message": f"Hello World but in prvate {user.id}, {user.email}"}
