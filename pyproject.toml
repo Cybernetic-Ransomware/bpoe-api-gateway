@@ -19,9 +19,20 @@ ruff = "^0.8.0"
 pytest = "^8.3.3"
 httpx = "^0.27.2"
 pytest-asyncio = "^0.24.0"
+pytest-cov = "^6.0.0"
 
-[pytest]
+[tool.pytest]
 pythonpath = "./src"
+
+[tool.pytest.ini_options]
+addopts = "--junitxml=./result/pytest_result.xml --cov=src --cov-report html:result/html"
+filterwarnings = [
+    "ignore::UserWarning",
+    'ignore:function ham\(\) is deprecated:DeprecationWarning',
+    "ignore:module 'sre_constants' is deprecated:DeprecationWarning",
+    "ignore::SyntaxWarning",
+]
+
 
 [tool.ruff]
 extend-exclude = []
