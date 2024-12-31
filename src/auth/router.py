@@ -3,12 +3,14 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Security
 from fastapi.responses import RedirectResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-
 from fastapi_auth0 import Auth0User
+from httpx import AsyncClient
 
 from src.auth.config import auth
-from src.config import APP_CLIENT_ID, APP_ALLLOWED_CALLBACK_URL
 from src.auth.utils import RoleVerifier
+from src.auth.models import TokenRequest
+from src.config import AUTH0_DOMAIN, AUTH0_CLIENT_SECRET, APP_CLIENT_ID, APP_ALLLOWED_CALLBACK_URL
+from src.exceptions import ExchangeTokenException
 
 
 router = APIRouter()
@@ -31,8 +33,31 @@ def verify_roles(
     verifier = RoleVerifier(token, allowed_roles)
     return verifier.verify()
 
+@router.get("/")
+async def public_endpoint():
+    return {"message": "This is a public endpoint. No authentication required."}
+
 @router.get("/priv", dependencies=[Depends(auth.implicit_scheme)])
 async def get_private(
         user: Annotated[Auth0User, Security(auth.get_user)],
         valid_roles: Annotated[bool, Depends(verify_roles)]) -> dict[str, str]:
     return {"message": f"Hello World but in prvate {user.id}, {user.email}"}
+
+
+@router.post("/exchange-token")
+async def exchange_token(request: TokenRequest):
+    token_url = f"https://{AUTH0_DOMAIN}/oauth/token"
+    async with AsyncClient() as client:
+        response = await client.post(
+            token_url,
+            json={
+                "grant_type": "authorization_code",
+                "client_id": APP_CLIENT_ID,
+                "client_secret": AUTH0_CLIENT_SECRET,
+                "code": request.auth_code,
+                "redirect_uri": "http://localhost:8000/log/",
+            },
+        )
+        if response.status_code != 200:
+            raise ExchangeTokenException(response.status_code)
+        return response.json()

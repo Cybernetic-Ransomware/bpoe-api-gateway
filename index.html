@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auth0 Login</title>
+</head>
+<body>
+    <h1>FastAPI Auth0 Test</h1>
+    <button id="login">Login with Google</button>
+    <button id="protected">Call Protected API</button>
+    <pre id="output"></pre>
+
+    <script>
+        const AUTH0_DOMAIN = "dev-i8o846dskrpez4ms.us.auth0.com";
+        const CLIENT_ID = "3ilPeuwCJQMUKsuLD0AeLYK9jVBym3P7";
+        const REDIRECT_URI = "http://127.0.0.1:8080/log/exchange-token";
+
+        document.getElementById("login").addEventListener("click", () => {
+            const authUrl = `https://${AUTH0_DOMAIN}/authorize?` +
+                `response_type=code&` +
+                `client_id=${CLIENT_ID}&` +
+                `redirect_uri=${encodeURIComponent(REDIRECT_URI)}&` +
+                `scope=openid profile email`;
+            window.location.href = authUrl;
+        });
+
+        document.getElementById("protected").addEventListener("click", async () => {
+            const token = localStorage.getItem("access_token");
+            if (!token) {
+                document.getElementById("output").textContent = "No access token found. Please log in first.";
+                return;
+            }
+
+            try {
+                const response = await fetch("http://localhost:8000/log/priv", {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                });
+                const data = await response.json();
+                document.getElementById("output").textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                document.getElementById("output").textContent = "Error calling protected endpoint: " + error.message;
+            }
+        });
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const code = urlParams.get("code");
+        if (code) {
+            fetch("http://localhost:8000/log/exchange-token", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ auth_code: code })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    localStorage.setItem("access_token", data.access_token);
+                    document.getElementById("output").textContent = "Logged in successfully!";
+                    window.history.replaceState({}, document.title, "/");
+                })
+                .catch(error => {
+                    document.getElementById("output").textContent = "Error exchanging token: " + error.message;
+                });
+        }
+    </script>
+</body>
+</html>
