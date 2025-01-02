@@ -14,7 +14,8 @@
     <script>
         const AUTH0_DOMAIN = "dev-i8o846dskrpez4ms.us.auth0.com";
         const CLIENT_ID = "3ilPeuwCJQMUKsuLD0AeLYK9jVBym3P7";
-        const REDIRECT_URI = "http://127.0.0.1:8080/log/exchange-token";
+        const REDIRECT_URI = "http://127.0.0.1:8070/index.html";
+        // python -m http.server 8070
 
         document.getElementById("login").addEventListener("click", () => {
             const authUrl = `https://${AUTH0_DOMAIN}/authorize?` +
@@ -33,7 +34,7 @@
             }
 
             try {
-                const response = await fetch("http://localhost:8000/log/priv", {
+                const response = await fetch("http://127.0.0.1:8080/log/priv", {
                     headers: {
                         Authorization: `Bearer ${token}`
                     }
@@ -48,7 +49,7 @@
         const urlParams = new URLSearchParams(window.location.search);
         const code = urlParams.get("code");
         if (code) {
-            fetch("http://localhost:8000/log/exchange-token", {
+            fetch("http://127.0.0.1:8080/log/exchange-token", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ auth_code: code })
