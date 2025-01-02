@@ -32,6 +32,7 @@
                 document.getElementById("output").textContent = "No access token found. Please log in first.";
                 return;
             }
+            // wywalić, przerzucić funkcjonalność na cookie z backendu (endpoint callback)
 
             try {
                 const response = await fetch("http://127.0.0.1:8080/log/priv", {

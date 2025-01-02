@@ -55,9 +55,11 @@ async def exchange_token(request: TokenRequest):
                 "client_id": APP_CLIENT_ID,
                 "client_secret": AUTH0_CLIENT_SECRET,
                 "code": request.auth_code,
-                "redirect_uri": "http://localhost:8000/log/",
+                "redirect_uri": "http://localhost:8000/log/",  # + endpoint /callback; zrób redirect na fron; request.session (by nie przechowywaćw localstorage, a w cookie tworzonym przez backend)
             },
         )
+        print(response.status_code, flush=True)
+        print(response.text, flush=True)
         if response.status_code != 200:
             raise ExchangeTokenException(response.status_code)
         return response.json()
