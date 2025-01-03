@@ -14,36 +14,35 @@
     <script>
         const AUTH0_DOMAIN = "dev-i8o846dskrpez4ms.us.auth0.com";
         const CLIENT_ID = "3ilPeuwCJQMUKsuLD0AeLYK9jVBym3P7";
-        const REDIRECT_URI = "http://127.0.0.1:8070/index.html";
+        const REDIRECT_URI = "http://127.0.0.1:8080/log/exchange-token";
         // python -m http.server 8070
 
         document.getElementById("login").addEventListener("click", () => {
-            const authUrl = `https://${AUTH0_DOMAIN}/authorize?` +
+            window.location.href = `https://${AUTH0_DOMAIN}/authorize?` +
                 `response_type=code&` +
                 `client_id=${CLIENT_ID}&` +
                 `redirect_uri=${encodeURIComponent(REDIRECT_URI)}&` +
                 `scope=openid profile email`;
-            window.location.href = authUrl;
         });
 
         document.getElementById("protected").addEventListener("click", async () => {
-            const token = localStorage.getItem("access_token");
-            if (!token) {
-                document.getElementById("output").textContent = "No access token found. Please log in first.";
-                return;
-            }
-            // wywalić, przerzucić funkcjonalność na cookie z backendu (endpoint callback)
-
             try {
                 const response = await fetch("http://127.0.0.1:8080/log/priv", {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
+                    method: "GET",
+                    credentials: "include"
                 });
-                const data = await response.json();
-                document.getElementById("output").textContent = JSON.stringify(data, null, 2);
+
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById("output").textContent = JSON.stringify(data, null, 2);
+                } else {
+                    const errorData = await response.json();
+                    document.getElementById("output").textContent =
+                        `Error: ${response.status} - ${JSON.stringify(errorData)}`;
+                }
             } catch (error) {
-                document.getElementById("output").textContent = "Error calling protected endpoint: " + error.message;
+                document.getElementById("output").textContent =
+                    "Error calling protected endpoint: " + error.message;
             }
         });
 
@@ -57,8 +56,7 @@
             })
                 .then(response => response.json())
                 .then(data => {
-                    localStorage.setItem("access_token", data.access_token);
-                    document.getElementById("output").textContent = "Logged in successfully!";
+                    document.getElementById("output").textContent = "Token exchanged successfully!";
                     window.history.replaceState({}, document.title, "/");
                 })
                 .catch(error => {

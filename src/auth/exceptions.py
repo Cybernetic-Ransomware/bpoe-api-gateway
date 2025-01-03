@@ -44,3 +44,10 @@ class InsufficientClaimException(HTTPException):
                 f"Insufficient {claim_name}. Missing required value: '{missing_value}'."
             )
         )
+
+class ExchangeTokenException(HTTPException):
+    def __init__(self, code):
+        super().__init__(
+            status_code=code,
+            detail="Failed to exchange authorization code."
+        )
