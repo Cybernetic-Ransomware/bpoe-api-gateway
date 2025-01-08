@@ -46,23 +46,25 @@
             }
         });
 
+        if (window.location.search.includes("code")) {
         const urlParams = new URLSearchParams(window.location.search);
-        const code = urlParams.get("code");
-        if (code) {
+        const authCode = urlParams.get("code");
+
+        if (authCode) {
             fetch("http://127.0.0.1:8080/log/exchange-token", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ auth_code: code })
+                body: JSON.stringify({ auth_code: authCode })
             })
-                .then(response => response.json())
-                .then(data => {
-                    document.getElementById("output").textContent = "Token exchanged successfully!";
-                    window.history.replaceState({}, document.title, "/");
-                })
-                .catch(error => {
-                    document.getElementById("output").textContent = "Error exchanging token: " + error.message;
-                });
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("output").textContent = "Token recieved";
+            })
+            .catch(error => {
+                document.getElementById("output").textContent = "ERROR: " + error.message;
+            });
         }
+    }
     </script>
 </body>
 </html>
