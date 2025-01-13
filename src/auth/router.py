@@ -1,9 +1,10 @@
 from typing import Annotated
+from jose import jwt
 
 from fastapi import APIRouter, Depends, Security, Response, Request, Query
 from fastapi.params import Query
 from fastapi.responses import RedirectResponse
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials, SecurityScopes
 from fastapi_auth0 import Auth0User
 from httpx import AsyncClient
 
@@ -15,6 +16,11 @@ from src.config import AUTH0_DOMAIN, AUTH0_CLIENT_SECRET, APP_CLIENT_ID, APP_ALL
 
 router = APIRouter()
 token_auth_scheme = HTTPBearer()
+
+
+class Auth0HTTPBearer(HTTPBearer):
+    async def __call__(self, request: Request):
+        return await super().__call__(request)
 
 
 def check_token(token: HTTPAuthorizationCredentials = Depends(token_auth_scheme)) -> RedirectResponse | str:
@@ -37,10 +43,47 @@ def verify_roles(
 async def public_endpoint():
     return {"message": "This is a public endpoint. No authentication required."}
 
-@router.get("/priv", dependencies=[Depends(auth.implicit_scheme)])
+def get_token_from_cookie(request: Request) -> str | None:
+    token = request.cookies.get("session")
+    if token is None:
+        return None
+    return token
+
+async def get_user_from_token(
+    request: Request,
+    security_scopes: SecurityScopes,
+    creds: HTTPAuthorizationCredentials | None = Depends(Auth0HTTPBearer(auto_error=False))
+) -> Auth0User | None:
+    if creds:
+        token = creds.credentials
+    else:
+        token = get_token_from_cookie(request)
+
+    print(token, flush=True)
+
+    try:
+        payload = jwt.decode(token, "secret", algorithms=["RS256"])
+        print(payload, flush=True)
+        return Auth0User(**payload)
+    except jwt.ExpiredSignatureError:
+        raise ExchangeTokenException(code=500)
+    except jwt.JWTError:
+
+        print(jwt.JWTError, flush=True)
+        raise ExchangeTokenException(code=500)
+
+@router.get("/priv", dependencies=[Depends(get_user_from_token)])
 async def get_private(
-        user: Annotated[Auth0User, Security(auth.get_user)],
-        valid_roles: Annotated[bool, Depends(verify_roles)]) -> dict[str, str]:
+    request: Request,
+    user: Annotated[Auth0User, Security(auth.get_user)],
+    # valid_roles: Annotated[bool, Depends(verify_roles)]
+) -> dict[str, str]:
+
+    csrftoken = request.cookies.get("session")
+
+    print(f"CSRF Token: {csrftoken}", flush=True)
+
+    return {"message": f"Hello World but in prvate"}
     return {"message": f"Hello World but in prvate {user.id}, {user.email}"}
 
 # @router.post("cookie")
@@ -53,8 +96,15 @@ async def get_private(
 #     print("Authenticated", flush=True)
 #     return{"message": "Session cookie set"}
 
+# async def get_token_from_cookie(request: Request) -> str | None:
+#     token = request.cookies.get("csrftoken")
+#     if token is None:
+#         raise ExchangeTokenException(status_code=400, detail="Token not found in cookies")
+#     return token
+
 @router.get("/exchange-token")
 async def exchange_token(request: Request, code: str = Query(..., description="Exchange Token")):
+    print(request, flush=True)
     token_url = f"https://{AUTH0_DOMAIN}/oauth/token"
     async with AsyncClient() as client:
         res = await client.post(
@@ -64,24 +114,17 @@ async def exchange_token(request: Request, code: str = Query(..., description="E
                 "client_id": APP_CLIENT_ID,
                 "client_secret": AUTH0_CLIENT_SECRET,
                 "code": code,
-                # "redirect_uri": "http://localhost:8080/log/cookie",  # + endpoint /callback; zrób redirect na fron; request.session (by nie przechowywaćw localstorage, a w cookie tworzonym przez backend)
-                # "redirect_uri": "http://127.0.0.1:8080/docs",
                 "redirect_uri": "http://127.0.0.1:8070/index.html",
             },
         )
-        # print(res.status_code, flush=True)
-        # print(res.text, flush=True)
 
-        print(res, flush=True)
         if res.status_code != 200:
-            print(res.text, flush=True)
             raise ExchangeTokenException(res.status_code)
 
         token_data = res.json()
         access_token = token_data.get("access_token")
-        print(access_token, flush=True)
         if not access_token:
             raise ExchangeTokenException(code=500)
-
+        print(access_token, flush=True)
         request.session["access_token"] = access_token
         return {"message": "Token exchanged and stored in session"}
