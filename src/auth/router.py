@@ -59,18 +59,16 @@ async def get_user_from_token(
     else:
         token = get_token_from_cookie(request)
 
-    print(token, flush=True)
+    # print(token, flush=True)
 
     try:
         payload = jwt.decode(token, "secret", algorithms=["RS256"])
         print(payload, flush=True)
         return Auth0User(**payload)
-    except jwt.ExpiredSignatureError:
-        raise ExchangeTokenException(code=500)
-    except jwt.JWTError:
-
-        print(jwt.JWTError, flush=True)
-        raise ExchangeTokenException(code=500)
+    except jwt.ExpiredSignatureError as e:
+        raise ExchangeTokenException(code=500, verbose=str(e))
+    except jwt.JWTError as e:
+        raise ExchangeTokenException(code=500, verbose=str(e))
 
 @router.get("/priv", dependencies=[Depends(get_user_from_token)])
 async def get_private(
@@ -80,11 +78,8 @@ async def get_private(
 ) -> dict[str, str]:
 
     csrftoken = request.cookies.get("session")
-
-    print(f"CSRF Token: {csrftoken}", flush=True)
-
-    return {"message": f"Hello World but in prvate"}
-    return {"message": f"Hello World but in prvate {user.id}, {user.email}"}
+    return {"message": f"Hello World but in private"}
+    return {"message": f"Hello World but in private {user.id}, {user.email}"}
 
 # @router.post("cookie")
 # async def cookie_callback(request: Request, response: Response):
@@ -104,7 +99,6 @@ async def get_private(
 
 @router.get("/exchange-token")
 async def exchange_token(request: Request, code: str = Query(..., description="Exchange Token")):
-    print(request, flush=True)
     token_url = f"https://{AUTH0_DOMAIN}/oauth/token"
     async with AsyncClient() as client:
         res = await client.post(
@@ -119,12 +113,12 @@ async def exchange_token(request: Request, code: str = Query(..., description="E
         )
 
         if res.status_code != 200:
-            raise ExchangeTokenException(res.status_code)
+            raise ExchangeTokenException(code=res.status_code, verbose=str(res.text))
 
         token_data = res.json()
         access_token = token_data.get("access_token")
         if not access_token:
             raise ExchangeTokenException(code=500)
-        print(access_token, flush=True)
+        # print(access_token, flush=True)
         request.session["access_token"] = access_token
         return {"message": "Token exchanged and stored in session"}

@@ -46,8 +46,8 @@ class InsufficientClaimException(HTTPException):
         )
 
 class ExchangeTokenException(HTTPException):
-    def __init__(self, code):
+    def __init__(self, code, verbose: str = ""):
         super().__init__(
             status_code=code,
-            detail="Failed to exchange authorization code."
+            detail=f"Failed to exchange authorization code. {verbose}"
         )
