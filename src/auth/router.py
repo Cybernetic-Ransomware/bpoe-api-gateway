@@ -1,101 +1,54 @@
-from typing import Annotated
-from jose import jwt
-
-from fastapi import APIRouter, Depends, Security, Response, Request, Query
+from fastapi import APIRouter, Depends, Security, Request
 from fastapi.params import Query
-from fastapi.responses import RedirectResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials, SecurityScopes
-from fastapi_auth0 import Auth0User
+from fastapi_auth0 import Auth0, Auth0User
 from httpx import AsyncClient
 
 from src.auth.config import auth
 from src.auth.exceptions import ExchangeTokenException
 from src.auth.utils import RoleVerifier
 # from src.auth.models import TokenRequest
-from src.config import AUTH0_DOMAIN, AUTH0_CLIENT_SECRET, APP_CLIENT_ID, APP_ALLLOWED_CALLBACK_URL
-
-router = APIRouter()
-token_auth_scheme = HTTPBearer()
+from src.config import AUTH0_DOMAIN, AUTH0_CLIENT_SECRET, APP_CLIENT_ID, AUTH0_API_AUDIENCE
 
 
 class Auth0HTTPBearer(HTTPBearer):
     async def __call__(self, request: Request):
         return await super().__call__(request)
 
+class CustomAuth0(Auth0):
+    def __init__(self, domain: str, api_audience: str, scopes: dict = {}, **kwargs):
+        super().__init__(domain, api_audience, scopes, **kwargs)
 
-def check_token(token: HTTPAuthorizationCredentials = Depends(token_auth_scheme)) -> RedirectResponse | str:
-    if not token or not token.credentials:
-        login_url = (
-            f"https://{auth.AUTH0_DOMAIN}/authorize?"
-            f"response_type=token&client_id={APP_CLIENT_ID}"
-            f"&redirect_uri={APP_ALLLOWED_CALLBACK_URL}&audience={auth.AUDIENCE}"
-        )
-        return RedirectResponse(url=login_url)
-    return token.credentials
+    async def get_user(self, security_scopes: SecurityScopes, creds: HTTPAuthorizationCredentials | None = Depends(Auth0HTTPBearer(auto_error=False)), raw_request: Request = None) -> Auth0User | None:
+        if creds is None:
+            access_token = raw_request.session.get("access_token") if raw_request else None
+            if not access_token:
+                access_token = raw_request.cookies.get("session") if raw_request else None
 
-def verify_roles(
-        token: Annotated[HTTPAuthorizationCredentials, Depends(check_token)],
-        allowed_roles: list[str | None] = None) -> bool:
-    verifier = RoleVerifier(token, allowed_roles)
-    return verifier.verify()
+            if not access_token:
+                raise ExchangeTokenException(code=403, verbose="Missing bearer token")
+
+            creds = HTTPAuthorizationCredentials(scheme="Bearer", credentials=access_token)
+
+        return await super().get_user(security_scopes, creds)
+
+router = APIRouter()
+token_auth_scheme = HTTPBearer()
+
+authorizer = CustomAuth0(domain=AUTH0_DOMAIN, api_audience=AUTH0_API_AUDIENCE, email_auto_error=True)
 
 @router.get("/")
 async def public_endpoint():
     return {"message": "This is a public endpoint. No authentication required."}
 
-def get_token_from_cookie(request: Request) -> str | None:
-    token = request.cookies.get("session")
-    if token is None:
-        return None
-    return token
-
-async def get_user_from_token(
-    request: Request,
-    security_scopes: SecurityScopes,
-    creds: HTTPAuthorizationCredentials | None = Depends(Auth0HTTPBearer(auto_error=False))
-) -> Auth0User | None:
-    if creds:
-        token = creds.credentials
-    else:
-        token = get_token_from_cookie(request)
-
-    # print(token, flush=True)
-
-    try:
-        payload = jwt.decode(token, "secret", algorithms=["RS256"])
-        print(payload, flush=True)
-        return Auth0User(**payload)
-    except jwt.ExpiredSignatureError as e:
-        raise ExchangeTokenException(code=500, verbose=str(e))
-    except jwt.JWTError as e:
-        raise ExchangeTokenException(code=500, verbose=str(e))
-
-@router.get("/priv", dependencies=[Depends(get_user_from_token)])
+@router.get("/priv", dependencies=[Depends(authorizer.implicit_scheme)])
 async def get_private(
     request: Request,
-    user: Annotated[Auth0User, Security(auth.get_user)],
-    # valid_roles: Annotated[bool, Depends(verify_roles)]
+    user: Auth0User = Security(authorizer.get_user)
 ) -> dict[str, str]:
-
-    csrftoken = request.cookies.get("session")
-    return {"message": f"Hello World but in private"}
-    return {"message": f"Hello World but in private {user.id}, {user.email}"}
-
-# @router.post("cookie")
-# async def cookie_callback(request: Request, response: Response):
-#     print("Authentication in progress", flush=True)
-#     token = request.session.get("access_token")
-#     if not token:
-#         raise ExchangeTokenException(code=500)
-#     response.set_cookie(key="auth_token", value="token", max_age=3600, httponly=True, secure=False)
-#     print("Authenticated", flush=True)
-#     return{"message": "Session cookie set"}
-
-# async def get_token_from_cookie(request: Request) -> str | None:
-#     token = request.cookies.get("csrftoken")
-#     if token is None:
-#         raise ExchangeTokenException(status_code=400, detail="Token not found in cookies")
-#     return token
+    scheme = authorizer.implicit_scheme
+    user = user
+    return {"message": f"Hello World {user.email} but in private."}
 
 @router.get("/exchange-token")
 async def exchange_token(request: Request, code: str = Query(..., description="Exchange Token")):
@@ -104,9 +57,10 @@ async def exchange_token(request: Request, code: str = Query(..., description="E
         res = await client.post(
             token_url,
             json={
-                "grant_type": "authorization_code",
+                "grant_type": "client_credentials",
                 "client_id": APP_CLIENT_ID,
                 "client_secret": AUTH0_CLIENT_SECRET,
+                "audience": AUTH0_API_AUDIENCE,
                 "code": code,
                 "redirect_uri": "http://127.0.0.1:8070/index.html",
             },
@@ -119,6 +73,7 @@ async def exchange_token(request: Request, code: str = Query(..., description="E
         access_token = token_data.get("access_token")
         if not access_token:
             raise ExchangeTokenException(code=500)
-        # print(access_token, flush=True)
+        print(code, flush=True)
+        print(access_token, flush=True)
         request.session["access_token"] = access_token
         return {"message": "Token exchanged and stored in session"}
