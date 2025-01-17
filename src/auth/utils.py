@@ -17,7 +17,11 @@ class CustomAuth0(Auth0):
 
         super().__init__(domain, api_audience, scopes, **kwargs)
 
-    async def get_user(self, security_scopes: SecurityScopes, creds: HTTPAuthorizationCredentials | None = Depends(Auth0HTTPBearer(auto_error=False)), raw_request: Request = None) -> Auth0User | None:
+    async def get_user(self,
+                       security_scopes: SecurityScopes,
+                       creds: HTTPAuthorizationCredentials | None = Depends(Auth0HTTPBearer(auto_error=False)),
+                       raw_request: Request = None
+                       ) -> Auth0User | None:
         if creds is None:
             access_token = raw_request.session.get("access_token") if raw_request else None
             if not access_token:
