@@ -51,6 +51,9 @@ select = ["E", "F", "UP", "B", "SIM"]
 "tests/**" = ["F401", "F841"]
 "test_*.py" = ["F401", "F841"]
 
+[tool.ruff.flake8-bugbear]
+extend-immutable-calls = ["fastapi.Depends", "fastapi.params.Depends", "fastapi.Query", "fastapi.params.Query"]
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

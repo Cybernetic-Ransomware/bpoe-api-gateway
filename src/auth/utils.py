@@ -19,7 +19,7 @@ class CustomAuth0(Auth0):
 
     async def get_user(self,
                        security_scopes: SecurityScopes,
-                       creds: HTTPAuthorizationCredentials | None = Depends(Auth0HTTPBearer(auto_error=False)),
+                       creds: HTTPAuthorizationCredentials | None = Depends(Auth0HTTPBearer(auto_error=False)),    # noqa: B008
                        raw_request: Request = None
                        ) -> Auth0User | None:
         if creds is None:

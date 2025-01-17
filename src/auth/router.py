@@ -21,7 +21,7 @@ async def public_endpoint():
 @router.get("/priv", dependencies=[Depends(authorizer.implicit_scheme)])
 async def get_private(
     request: Request,
-    user: Auth0User = Security(authorizer.get_user)
+    user: Auth0User = Security(authorizer.get_user)  # noqa: B008
 ) -> dict[str, str]:
     user = user
     return {"message": f"Hello World {user.email} but in private."}
