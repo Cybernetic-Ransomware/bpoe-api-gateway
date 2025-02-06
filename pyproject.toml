@@ -11,15 +11,29 @@ python = "^3.12"
 fastapi = {extras = ["standard"], version = "^0.115.5"}
 python-decouple = "^3.8"
 fastapi-auth0 = "^0.5.0"
+jwt = "^1.3.1"
+pyjwt = "^2.10.1"
+itsdangerous = "^2.2.0"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.8.0"
 pytest = "^8.3.3"
 httpx = "^0.27.2"
 pytest-asyncio = "^0.24.0"
+pytest-cov = "^6.0.0"
 
-[pytest]
+[tool.pytest]
 pythonpath = "./src"
+
+[tool.pytest.ini_options]
+addopts = "--junitxml=./result/pytest_result.xml --cov=src --cov-report html:result/html"
+filterwarnings = [
+    "ignore::UserWarning",
+    'ignore:function ham\(\) is deprecated:DeprecationWarning',
+    "ignore:module 'sre_constants' is deprecated:DeprecationWarning",
+    "ignore::SyntaxWarning",
+]
+
 
 [tool.ruff]
 extend-exclude = []
@@ -30,12 +44,16 @@ docstring-code-format = true
 docstring-code-line-length = 124
 
 [tool.ruff.lint]
-select = ["E", "F", "UP", "B", "SIM"]
+#select = ["E", "F", "UP", "B", "SIM"]
+select = ["E4", "E7", "E9", "F", "B", "Q"]
 #select = ["I"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["F401", "F841"]
 "test_*.py" = ["F401", "F841"]
+
+[tool.ruff.lint.flake8-bugbear]
+extend-immutable-calls = ["fastapi.Depends", "fastapi.params.Depends", "fastapi.Query", "fastapi.params.Query"]
 
 [build-system]
 requires = ["poetry-core"]

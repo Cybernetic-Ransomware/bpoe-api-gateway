@@ -44,7 +44,7 @@ The purpose of this project is to build frame for the microservices.
       ```
 5. Run locally:
       ```powershell
-      uvicorn src.main:app --host 0.0.0.0 --port 8080 --reload
+      poetry run uvicorn src.main:app --host 0.0.0.0 --port 8080 --reload
       ```
 
 ## Testing
@@ -60,6 +60,10 @@ poetry run pytest
 #### Ruff
 - Ruff is included for linting. Run the tool with the command: `ruff chcek`
 
+#### Simple Frontend:
+```powershell
+python -m http.server 8070
+```
 
 ## Useful links and documentation
 - Will be described.
