@@ -14,17 +14,20 @@ token_auth_scheme = HTTPBearer()
 
 authorizer = CustomAuth0(domain=AUTH0_DOMAIN, api_audience=AUTH0_API_AUDIENCE, email_auto_error=True)
 
+
 @router.get("/")
 async def public_endpoint():
     return {"message": "This is a public endpoint. No authentication required."}
 
+
 @router.get("/priv", dependencies=[Depends(authorizer.implicit_scheme)])
 async def get_private(
     request: Request,
-    user: Auth0User = Security(authorizer.get_user)  # noqa: B008
+    user: Auth0User = Security(authorizer.get_user),  # noqa: B008
 ) -> dict[str, str]:
     user = user
     return {"message": f"Hello World {user.email} but in private."}
+
 
 @router.get("/exchange-token")
 async def exchange_token(request: Request, code: str = Query(..., description="Exchange Token")):
@@ -32,7 +35,7 @@ async def exchange_token(request: Request, code: str = Query(..., description="E
     async with AsyncClient() as client:
         res = await client.post(
             token_url,
-            headers={'content-type': "application/json"},
+            headers={"content-type": "application/json"},
             json={
                 # "grant_type": "client_credentials",
                 "grant_type": "authorization_code",

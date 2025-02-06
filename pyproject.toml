@@ -44,14 +44,15 @@ docstring-code-format = true
 docstring-code-line-length = 124
 
 [tool.ruff.lint]
-select = ["E", "F", "UP", "B", "SIM"]
+#select = ["E", "F", "UP", "B", "SIM"]
+select = ["E4", "E7", "E9", "F", "B", "Q"]
 #select = ["I"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["F401", "F841"]
 "test_*.py" = ["F401", "F841"]
 
-[tool.ruff.flake8-bugbear]
+[tool.ruff.lint.flake8-bugbear]
 extend-immutable-calls = ["fastapi.Depends", "fastapi.params.Depends", "fastapi.Query", "fastapi.params.Query"]
 
 [build-system]
