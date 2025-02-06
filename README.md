@@ -60,6 +60,10 @@ poetry run pytest
 #### Ruff
 - Ruff is included for linting. Run the tool with the command: `ruff chcek`
 
+#### Simple Frontend:
+```powershell
+python -m http.server 8070
+```
 
 ## Useful links and documentation
 - Will be described.

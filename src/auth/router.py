@@ -37,7 +37,6 @@ async def exchange_token(request: Request, code: str = Query(..., description="E
             token_url,
             headers={"content-type": "application/json"},
             json={
-                # "grant_type": "client_credentials",
                 "grant_type": "authorization_code",
                 "client_id": APP_CLIENT_ID,
                 "client_secret": AUTH0_CLIENT_SECRET,
