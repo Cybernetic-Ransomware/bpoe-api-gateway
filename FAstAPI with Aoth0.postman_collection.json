@@ -1,0 +1,220 @@
+{
+	"info": {
+		"_postman_id": "d2c99937-8367-4d83-a7f8-8570b2a5a6e4",
+		"name": "FAstAPI with Aoth0",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "37255784"
+	},
+	"item": [
+		{
+			"name": "# Docs",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/docs#/",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"docs"
+					],
+					"hash": "/"
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "# Public",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "# Public2",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/log/",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"log",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "01 Login",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://{{AUTH0_DOMAIN}}/authorize?response_type=code&client_id={{CLIENT_ID}}&redirect_uri={{REDIRECT_URI}}&scope=openid profile email",
+					"protocol": "https",
+					"host": [
+						"{{AUTH0_DOMAIN}}"
+					],
+					"path": [
+						"authorize"
+					],
+					"query": [
+						{
+							"key": "response_type",
+							"value": "code"
+						},
+						{
+							"key": "client_id",
+							"value": "{{CLIENT_ID}}"
+						},
+						{
+							"key": "redirect_uri",
+							"value": "{{REDIRECT_URI}}"
+						},
+						{
+							"key": "scope",
+							"value": "openid profile email"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "02 Access_token_without_backend",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "grant_type",
+							"value": "authorization_code",
+							"type": "text"
+						},
+						{
+							"key": "client_id",
+							"value": "{{CLIENT_ID}}",
+							"type": "text"
+						},
+						{
+							"key": "client_secret",
+							"value": "{{CLIENT_SECRET}}",
+							"type": "text"
+						},
+						{
+							"key": "code",
+							"value": "I46VjNK5DmveMKDXVVtx-ktMNyaAlVhSQw6hVOr87_t1G",
+							"description": "From your web browser",
+							"type": "text"
+						},
+						{
+							"key": "redirect_uri",
+							"value": "{{REDIRECT_URI}}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "https://{{AUTH0_DOMAIN}}/oauth/token",
+					"protocol": "https",
+					"host": [
+						"{{AUTH0_DOMAIN}}"
+					],
+					"path": [
+						"oauth",
+						"token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "03 Code_for_cookie_from_backend",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InhJeXpEcDZNTW9tdHBCNEFQSmp2MSJ9.eyJodHRwczovL2Jwb2UuY29tL2VtYWlsIjoiYm9sbzY2MUBnbWFpbC5jb20iLCJpc3MiOiJodHRwczovL2Rldi1pOG84NDZkc2tycGV6NG1zLnVzLmF1dGgwLmNvbS8iLCJzdWIiOiJnb29nbGUtb2F1dGgyfDEwMTk1ODQyNTM2MTA2MzkyMTA0MiIsImF1ZCI6WyJodHRwczovL2Jwb2UtYXV0aC1hcGkiLCJodHRwczovL2Rldi1pOG84NDZkc2tycGV6NG1zLnVzLmF1dGgwLmNvbS91c2VyaW5mbyJdLCJpYXQiOjE3Mzg4NTM2ODUsImV4cCI6MTczODk0MDA4NSwic2NvcGUiOiJvcGVuaWQgcHJvZmlsZSBlbWFpbCIsImF6cCI6IjNpbFBldXdDSlFNVUtzdUxEMEFlTFlLOWpWQnltM1A3IiwicGVybWlzc2lvbnMiOltdfQ.XnPpFzfH97B4rQAytXZ_gF6RL_bdMTKeWjxztrtlVVTOuep2C53HxLy-RVfu6OoGaylCCnhxWtAPoeaaDg5aIpsLvqqGYgGFFSuqlGFXJTD5UlkbVm5wAvAnf-rDy9WiljREQmEYEi1zFf-XELMelfQ5gPgWMOvmJumvfnS9U6Fdq9iQtx_iPAVyWywnCfGiq6W5snRmsUgrXpx9i4i2Ec1rYCKy27jLsgrhH0l11alo2R8Fn-inNqBggWcWa5N4XNo0NKzYM_e4vUiTm0y8w4SQRNXDirhVnb5ii1URXc-vl_b1oYu7JB2g5zvGzelkxMrG13ZlMF4ysZOGJByXUg",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:8080/log/exchange-token?code=RcThos3tYna5Re_Jcnwcq2cFxxBNWteyXji1khpw9yI3M",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"log",
+						"exchange-token"
+					],
+					"query": [
+						{
+							"key": "code",
+							"value": "RcThos3tYna5Re_Jcnwcq2cFxxBNWteyXji1khpw9yI3M",
+							"description": "From your web browser"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "04 Priv",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/log/priv",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"log",
+						"priv"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
