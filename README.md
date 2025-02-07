@@ -1,5 +1,5 @@
 # API Gateway for BPOE app
-This repository contains an gateway application used to orchestrate communication in Be Part Of the Event application.
+This repository contains a gateway application used to orchestrate communication in Be Part Of the Event application.
 
 ## Overview
 The purpose of this project is to build frame for the microservices.
