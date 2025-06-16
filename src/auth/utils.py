@@ -12,7 +12,7 @@ class Auth0HTTPBearer(HTTPBearer):
 
 
 class CustomAuth0(Auth0):
-    def __init__(self, domain: str, api_audience: str, scopes: dict = None, **kwargs):
+    def __init__(self, domain: str, api_audience: str, scopes: dict | None = None, **kwargs):
         if scopes is None:
             scopes = {}
 
@@ -22,7 +22,7 @@ class CustomAuth0(Auth0):
         self,
         security_scopes: SecurityScopes,
         creds: HTTPAuthorizationCredentials | None = Depends(Auth0HTTPBearer(auto_error=False)),  # noqa: B008
-        request: Request = None,
+        request: Request | None = None,
     ) -> Auth0User | None:
         if creds is None:
             access_token = request.session.get("access_token") if request else None

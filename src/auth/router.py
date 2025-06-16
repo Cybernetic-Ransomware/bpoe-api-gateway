@@ -30,7 +30,7 @@ async def get_private(
 
 
 @router.get("/exchange-token")
-async def exchange_token(request: Request, code: str = Query(..., description="Exchange Token")):
+async def exchange_token(request: Request, code: Query = Query(..., description="Exchange Token")):
     token_url = f"https://{AUTH0_DOMAIN}/oauth/token"
     async with AsyncClient() as client:
         res = await client.post(

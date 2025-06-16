@@ -14,11 +14,11 @@ The purpose of this project is to build frame for the microservices.
   - statement/reports service.
 
 ## Requirements
-- Python 3.12.7
+- Python >=3.12.7 with poetry package manager
 - Docker Desktop / Docker + Compose
 
 ## Getting Started (Windows)
-### Deploy 
+### Deploy
 1. Clone the repository:
       ```powershell
       git clone https://github.com/Cybernetic-Ransomware/bpoe-api-gateway.git
@@ -28,7 +28,7 @@ The purpose of this project is to build frame for the microservices.
       ```powershell
       docker-compose -f ./docker/docker-compose.yml up --build
       ```
-### Dev-instance   
+### Dev-instance
 1. Clone the repository:
       ```powershell
       git clone https://github.com/Cybernetic-Ransomware/bpoe-api-gateway.git
@@ -42,14 +42,20 @@ The purpose of this project is to build frame for the microservices.
       ```powershell
       poetry install --with dev
       ```
-5. Run locally:
+5. Install pre-commit hooks:
+      ```powershell
+      poetry run pre-commit install
+      poetry run pre-commit autoupdate
+      poetry run pre-commit run --all-files
+      ```
+6. Run the application locally:
       ```powershell
       poetry run uvicorn src.main:app --host 0.0.0.0 --port 8080 --reload
       ```
 
 ## Testing
 #### Postman
-- The repository will include a Postman collection with ready-to-import webhook mockers
+- The repository include a Postman collection with ready-to-import webhook mockers
 
 #### Pytest
 ```powershell
@@ -58,7 +64,22 @@ poetry run pytest
 ```
 
 #### Ruff
-- Ruff is included for linting. Run the tool with the command: `ruff chcek`
+```powershell
+poetry install --with dev
+poetry run ruff check
+```
+
+#### Mypy
+```powershell
+poetry install --with dev
+poetry run mypy .\src\
+```
+
+#### Codespell
+```powershell
+poetry install --with dev
+poetry run codespell
+```
 
 #### Simple Frontend:
 ```powershell
@@ -66,4 +87,6 @@ python -m http.server 8070
 ```
 
 ## Useful links and documentation
-- Will be described.
+- Databases handler microservice: [GitHub](https://github.com/Cybernetic-Ransomware/bpoe_events_db_handler)
+- OCR microservice: [GitHub](https://github.com/Cybernetic-Ransomware/bpoe-ocr)
+- Reports microservice: [GitHub](https://github.com/Cybernetic-Ransomware/bpoe_events_reports)
