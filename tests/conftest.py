@@ -11,7 +11,7 @@ import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 
-TEST_ENV_FILE = Path(".env.test")
+TEST_ENV_FILE = Path(__file__).resolve().parent / ".env.test"
 
 
 def _load_test_env() -> None:
