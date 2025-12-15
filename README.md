@@ -1,5 +1,19 @@
 # API Gateway for BPOE app
+![Python](https://img.shields.io/badge/Python-3.12+-3776AB?logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-ASGI-009688?logo=fastapi&logoColor=white)
+![Auth0](https://img.shields.io/badge/Auth0-OAuth2-orange?logo=auth0&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)
+![Sentry](https://img.shields.io/badge/Sentry-Monitoring-362D59?logo=sentry&logoColor=white)
+![Poetry](https://img.shields.io/badge/Poetry-Dependencies-60A5FA?logo=poetry&logoColor=white)
+
 This repository contains a gateway application used to orchestrate communication in Be Part Of the Event application.
+
+## Tech Stack
+- FastAPI gateway with Starlette middleware (sessions, CORS) and Auth0 authentication helpers.
+- Python 3.12 managed via Poetry (production + dev dependency groups).
+- Sentry SDK for error monitoring, tracing, and profiling.
+- Docker Compose setup for local orchestration of dependencies and the API gateway.
+- Postman collection (`FAstAPI with Aoth0.postman_collection.json`) and static frontend (`index.html`) for manual auth flows.
 
 ## Overview
 The purpose of this project is to build frame for the microservices.
@@ -18,12 +32,14 @@ The purpose of this project is to build frame for the microservices.
 - Docker Desktop / Docker + Compose
 
 ## Getting Started (Windows)
+> Tip: before running any command copy `docker/.env.template` to `docker/.env` (and to the project root if you alter `config.search_path`). Fill in the Auth0 credentials, session secret, and optional Sentry values directly in that file—the inline comments explain every variable.
+
 ### Deploy
 1. Clone the repository:
       ```powershell
       git clone https://github.com/Cybernetic-Ransomware/bpoe-api-gateway.git
       ```
-2. Set .env file based on the template.
+2. Configure environment variables: `cp docker/.env.template docker/.env` and update the values.
 3. Run using Docker:
       ```powershell
       docker-compose -f ./docker/docker-compose.yml up --build
@@ -33,7 +49,7 @@ The purpose of this project is to build frame for the microservices.
       ```powershell
       git clone https://github.com/Cybernetic-Ransomware/bpoe-api-gateway.git
       ```
-2. Set .env file based on the template.
+2. Configure environment variables: `cp docker/.env.template docker/.env` and update the values (they are required even for local dev).
 3. Install poetry:
       ```powershell
       pip install poetry
@@ -85,6 +101,13 @@ poetry run codespell
 ```powershell
 python -m http.server 8070
 ```
+
+## Observability (Sentry)
+- The gateway is instrumented with `sentry_sdk` inside `src/main.py`. Set `SENTRY_DSN` (and the sampling rates) in your environment before starting the service so every exception, trace, and profile is captured in the proper project.
+- By default the DSN is hard-coded in `src/main.py`; replace it with your tenant-specific DSN or wire it to the configuration variables listed above before deploying.
+- `send_default_pii=True` is enabled, which means user email addresses and Auth0 metadata will be attached to events. Ensure this matches your data-processing agreements, or toggle it off for sensitive environments.
+- For local development you can either omit `SENTRY_DSN` or guard the initialization call to avoid noisy events. For CI/staging, consider reducing `traces_sample_rate`/`profiles_sample_rate` to avoid unnecessary volume.
+- Consult the official [Sentry FastAPI documentation](https://docs.sentry.io/platforms/python/guides/fastapi/) for advanced configuration such as custom scrubbers or sampling rules.
 
 ## Useful links and documentation
 - API Gateway microservice: [GitHub](https://github.com/Cybernetic-Ransomware/bpoe-api-gateway.git)
