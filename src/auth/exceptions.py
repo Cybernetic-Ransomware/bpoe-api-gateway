@@ -34,3 +34,15 @@ class InsufficientClaimException(HTTPException):
 class ExchangeTokenException(HTTPException):
     def __init__(self, code, verbose: str = ""):
         super().__init__(status_code=code, detail=f"Failed to exchange authorization code. {verbose}")
+
+
+class AuthContextRateLimitException(HTTPException):
+    def __init__(self, retry_after_seconds: int | None = None):
+        headers = {}
+        if retry_after_seconds is not None:
+            headers["Retry-After"] = str(retry_after_seconds)
+        super().__init__(
+            status_code=429,
+            detail="Too many authentication context requests. Please wait before retrying.",
+            headers=headers,
+        )

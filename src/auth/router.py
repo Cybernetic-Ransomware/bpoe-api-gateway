@@ -2,6 +2,7 @@ import base64
 import hashlib
 import logging
 import secrets
+import time
 
 from fastapi import APIRouter, Depends, Security, Request, Body
 from fastapi.security import HTTPBearer
@@ -16,7 +17,7 @@ from src.config import (
     AUTH0_API_AUDIENCE,
     APP_ALLLOWED_CALLBACK_URL,
 )
-from src.auth.exceptions import ExchangeTokenException
+from src.auth.exceptions import ExchangeTokenException, AuthContextRateLimitException
 from src.auth.utils import CustomAuth0
 
 
@@ -64,9 +65,27 @@ def _code_challenge(verifier: str) -> str:
     return base64.urlsafe_b64encode(digest).rstrip(b"=").decode("utf-8")
 
 
+AUTH_CONTEXT_RATE_WINDOW_SECONDS = 60
+AUTH_CONTEXT_RATE_LIMIT = 5
+
+
+def _enforce_auth_context_rate_limit(request: Request) -> None:
+    now = time.time()
+    history_key = "auth_context_hits"
+    hits = request.session.get(history_key, [])
+    hits = [ts for ts in hits if now - ts < AUTH_CONTEXT_RATE_WINDOW_SECONDS]
+    if len(hits) >= AUTH_CONTEXT_RATE_LIMIT:
+        retry_after = int(AUTH_CONTEXT_RATE_WINDOW_SECONDS - (now - hits[0])) if hits else None
+        raise AuthContextRateLimitException(retry_after_seconds=retry_after)
+
+    hits.append(now)
+    request.session[history_key] = hits
+
+
 @router.get("/auth/context")
 async def get_auth_context(request: Request) -> dict[str, str]:
     """Returns PKCE parameters and stores them in the session for later verification."""
+    _enforce_auth_context_rate_limit(request)
     state = _generate_state()
     code_verifier = _generate_code_verifier()
     challenge = _code_challenge(code_verifier)
