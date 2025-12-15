@@ -35,6 +35,12 @@ class TokenExchangePayload(BaseModel):
 
 @router.get("/")
 async def public_endpoint():
+    """
+    Health-style endpoint showing the gateway responds without authentication.
+
+    Returns:
+        dict[str, str]: Static message confirming the service is reachable.
+    """
     return {"message": "This is a public endpoint. No authentication required."}
 
 
@@ -43,6 +49,16 @@ async def get_private(
     request: Request,
     user: Auth0User = Security(authorizer.get_user),  # noqa: B008
 ) -> dict[str, str]:
+    """
+    Return greeting visible only to authenticated users resolved by Auth0.
+
+    Args:
+        request: Incoming FastAPI request (unused but kept for parity with other handlers).
+        user: Auth0-resolved user injected via dependency.
+
+    Returns:
+        dict[str, str]: Message containing the authenticated user's email.
+    """
     user = user
     return {"message": f"Hello World {user.email} but in private."}
 
@@ -84,7 +100,15 @@ def _enforce_auth_context_rate_limit(request: Request) -> None:
 
 @router.get("/auth/context")
 async def get_auth_context(request: Request) -> dict[str, str]:
-    """Returns PKCE parameters and stores them in the session for later verification."""
+    """
+    Generate PKCE/state parameters and persist them in the session for later validation.
+
+    Args:
+        request: FastAPI request containing session storage used to persist PKCE values.
+
+    Returns:
+        dict[str, str]: Payload with state, code challenge, redirect URI and metadata used by the SPA.
+    """
     _enforce_auth_context_rate_limit(request)
     state = _generate_state()
     code_verifier = _generate_code_verifier()
@@ -106,6 +130,16 @@ async def get_auth_context(request: Request) -> dict[str, str]:
 
 @router.post("/exchange-token")
 async def exchange_token(request: Request, payload: TokenExchangePayload = Body(...)):  # noqa: B008
+    """
+    Exchange Auth0 authorization code for tokens after validating state and PKCE verifier.
+
+    Args:
+        request: FastAPI request containing the session that stores PKCE/context values.
+        payload: Body with the authorization `code` and `state` returned from Auth0 redirect.
+
+    Returns:
+        dict[str, str]: Confirmation message informing that the access token is stored in session.
+    """
     expected_state = request.session.get("oauth_state")
     if not expected_state or payload.state != expected_state:
         logger.warning("Auth0 code exchange rejected due to state mismatch")

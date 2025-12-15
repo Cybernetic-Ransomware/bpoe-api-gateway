@@ -29,4 +29,10 @@ app.include_router(auth_router, prefix="/log", tags=["auth"])
 
 @app.get("/")
 async def root():
+    """
+    Readiness endpoint confirming the API gateway is running.
+
+    Returns:
+        dict[str, str]: Static payload indicating the service is operational.
+    """
     return {"message": "Hello World"}
