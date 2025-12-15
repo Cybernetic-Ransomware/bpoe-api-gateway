@@ -111,8 +111,8 @@ python -m http.server 8070
 
 ## Observability (Sentry)
 - The gateway is instrumented with `sentry_sdk` inside `src/main.py`. Set `SENTRY_DSN` (and the sampling rates) in your environment before starting the service so every exception, trace, and profile is captured in the proper project.
-- By default the DSN is hard-coded in `src/main.py`; replace it with your tenant-specific DSN or wire it to the configuration variables listed above before deploying.
-- `send_default_pii=True` is enabled, which means user email addresses and Auth0 metadata will be attached to events. Ensure this matches your data-processing agreements, or toggle it off for sensitive environments.
+- Telemetry is activated only when `SENTRY_DSN` is provided; when left blank no events are sent, which is useful for local development.
+- `send_default_pii` is disabled by default to avoid leaking user metadata. Enable it only if your compliance requirements allow attaching identities to errors.
 - For local development you can either omit `SENTRY_DSN` or guard the initialization call to avoid noisy events. For CI/staging, consider reducing `traces_sample_rate`/`profiles_sample_rate` to avoid unnecessary volume.
 - Consult the official [Sentry FastAPI documentation](https://docs.sentry.io/platforms/python/guides/fastapi/) for advanced configuration such as custom scrubbers or sampling rules.
 
