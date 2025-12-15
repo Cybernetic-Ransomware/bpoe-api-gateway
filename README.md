@@ -32,7 +32,7 @@ The purpose of this project is to build frame for the microservices.
 - Docker Desktop / Docker + Compose
 
 ## Getting Started (Windows)
-> Tip: before running any command copy `docker/.env.template` to `docker/.env` (and to the project root if you alter `config.search_path`). Fill in the Auth0 credentials, session secret, and optional Sentry values directly in that file—the inline comments explain every variable.
+> Tip: before running any command copy `docker/.env.template` to `docker/.env` (and to the project root if you alter `config.search_path`). Fill in the Auth0 credentials, session secret, CORS allow-list, and optional Sentry values directly in that file—the inline comments explain every variable.
 
 ### Deploy
 1. Clone the repository:

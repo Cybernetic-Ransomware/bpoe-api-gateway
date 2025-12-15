@@ -21,13 +21,13 @@ class CustomAuth0(Auth0):
     async def get_user(
         self,
         security_scopes: SecurityScopes,
+        request: Request,
         creds: HTTPAuthorizationCredentials | None = Depends(Auth0HTTPBearer(auto_error=False)),  # noqa: B008
-        request: Request | None = None,
     ) -> Auth0User | None:
         if creds is None:
-            access_token = request.session.get("access_token") if request else None
+            access_token = request.session.get("access_token")
             if not access_token:
-                access_token = request.cookies.get("session") if request else None
+                access_token = request.cookies.get("session")
 
             if not access_token:
                 raise ExchangeTokenException(code=403, verbose="Missing bearer token")

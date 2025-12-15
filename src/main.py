@@ -4,19 +4,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 
 from src.auth.router import router as auth_router
-from src.config import APP_SECRET_KEY
+from src.config import APP_SECRET_KEY, CORS_ALLOWED_ORIGINS
 from src.observability import init_sentry
 
 init_sentry()
 
-origins = [
-    "http://localhost",
-    "http://localhost:8080",
-    "http://127.0.0.1:8080/",
-    "http://localhost:8070/",
-    "http://127.0.0.1:8070/",
-    "*",
-]
+origins = CORS_ALLOWED_ORIGINS
 
 
 if not APP_SECRET_KEY:
