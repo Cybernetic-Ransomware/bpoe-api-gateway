@@ -68,6 +68,13 @@ The purpose of this project is to build frame for the microservices.
       ```powershell
       poetry run uvicorn src.main:app --host 0.0.0.0 --port 8080 --reload
       ```
+#### Versioning & Releases
+1. Daily Commits: Stage your changes and create commits through Commitizen to keep messages consistent:
+      ```powershell
+      git add .
+      poetry run cz commit
+      ```
+
 
 ## Testing
 #### Postman
