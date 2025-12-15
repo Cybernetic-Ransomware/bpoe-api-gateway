@@ -13,7 +13,7 @@ This repository contains a gateway application used to orchestrate communication
 - Python 3.12 managed via Poetry (production + dev dependency groups).
 - Sentry SDK for error monitoring, tracing, and profiling.
 - Docker Compose setup for local orchestration of dependencies and the API gateway.
-- Postman collection (`FAstAPI with Aoth0.postman_collection.json`) and static frontend (`index.html`) for manual auth flows.
+- Postman collection (`FAstAPI with Aoth0.postman_collection.json`) and static frontend (`index.html`) for manual auth flows. The HTML file is a developer helper only; production SPA/clients should replicate the PKCE/state flow on their side instead of referencing this file directly.
 
 ## Overview
 The purpose of this project is to build frame for the microservices.
