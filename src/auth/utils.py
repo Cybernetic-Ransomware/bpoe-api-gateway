@@ -27,9 +27,6 @@ class CustomAuth0(Auth0):
         if creds is None:
             access_token = request.session.get("access_token")
             if not access_token:
-                access_token = request.cookies.get("session")
-
-            if not access_token:
                 raise ExchangeTokenException(code=403, verbose="Missing bearer token")
 
             creds = HTTPAuthorizationCredentials(scheme="Bearer", credentials=access_token)
