@@ -1,0 +1,57 @@
+site_name: BPOE API Gateway Docs
+site_url: https://example.com/docs
+docs_dir: doc
+
+theme:
+  name: material
+  language: pl
+  font:
+    text: Roboto
+    code: "Red Hat Mono"
+  features:
+    - navigation.sections
+  palette:
+    - scheme: slate
+      primary: orange
+      accent: yellow
+      toggle:
+        icon: material/weather-sunny
+        name: Tryb ciemny
+    - scheme: default
+      primary: "deep purple"
+      accent: indigo
+      toggle:
+        icon: material/weather-night
+        name: Tryb jasny
+
+plugins:
+  - search
+  - glightbox
+  - awesome-pages
+  - mkdocstrings:
+      handlers:
+        python:
+          paths:
+            - .
+          options:
+            show_source: true
+            members_order: source
+            docstring_style: google
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - pymdownx.blocks.caption
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed
+
+nav:
+  - Overview: index.md
+  - API Reference:
+      - Auth Router: api/auth_router.md
+      - Main App: api/main.md

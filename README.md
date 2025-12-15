@@ -5,6 +5,7 @@
 ![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)
 ![Sentry](https://img.shields.io/badge/Sentry-Monitoring-362D59?logo=sentry&logoColor=white)
 ![Poetry](https://img.shields.io/badge/Poetry-Dependencies-60A5FA?logo=poetry&logoColor=white)
+![MkDocs](https://img.shields.io/badge/MkDocs-Material-3D6DAD?logo=mkdocs&logoColor=white)
 
 This repository contains a gateway application used to orchestrate communication in Be Part Of the Event application.
 
@@ -108,6 +109,19 @@ poetry run codespell
 ```powershell
 python -m http.server 8070
 ```
+
+## Developer Docs
+- The project ships with a MkDocs Material site under `doc/` that renders API reference straight from the Python docstrings via `mkdocstrings`.
+- Edit navigation/content in `mkdocs.yml` and the `doc/` directory; auto-generated reference pages live in `doc/api/`.
+- The `mkdocs.yml` config embeds Mermaid fences via `!!python/name` tags; because `check-yaml` cannot parse those safely, this file is excluded from the pre-commit hook (see `.pre-commit-config.yaml` comment for details).
+- Serve docs locally while coding:
+  ```powershell
+  poetry run mkdocs serve
+  ```
+- Produce a static site (generated into `site/`) ready for hosting:
+  ```powershell
+  poetry run mkdocs build
+  ```
 
 ## Observability (Sentry)
 - The gateway is instrumented with `sentry_sdk` inside `src/main.py`. Set `SENTRY_DSN` (and the sampling rates) in your environment before starting the service so every exception, trace, and profile is captured in the proper project.
