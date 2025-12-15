@@ -52,6 +52,11 @@ markdown_extensions:
 
 nav:
   - Overview: index.md
+  - Configuration: configuration.md
   - API Reference:
       - Auth Router: api/auth_router.md
+      - Auth Utils: api/auth_utils.md
+      - Auth Exceptions: api/auth_exceptions.md
       - Main App: api/main.md
+      - Config: api/config.md
+      - Observability: api/observability.md

@@ -1,3 +1,5 @@
+"""Environment configuration helper for the BPOE API Gateway."""
+
 from decouple import config, Csv
 
 
