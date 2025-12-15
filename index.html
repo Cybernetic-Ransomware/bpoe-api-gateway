@@ -50,8 +50,7 @@
         const authCode = urlParams.get("code");
 
         if (authCode) {
-            console.log("Redirecting to exchange-token")
-            console.log(authCode)
+            console.info("Redirecting to exchange-token", { codeLength: authCode.length });
             fetch(`http://127.0.0.1:8080/log/exchange-token?code=${authCode}`, {
                 method: "GET",
                 headers: { "Content-Type": "application/json" },

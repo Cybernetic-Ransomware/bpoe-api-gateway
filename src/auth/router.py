@@ -1,3 +1,6 @@
+import hashlib
+import logging
+
 from fastapi import APIRouter, Depends, Security, Request
 from fastapi.params import Query
 from fastapi.security import HTTPBearer
@@ -13,6 +16,7 @@ router = APIRouter()
 token_auth_scheme = HTTPBearer()
 
 authorizer = CustomAuth0(domain=AUTH0_DOMAIN, api_audience=AUTH0_API_AUDIENCE, email_auto_error=True)
+logger = logging.getLogger(__name__)
 
 
 @router.get("/")
@@ -29,9 +33,22 @@ async def get_private(
     return {"message": f"Hello World {user.email} but in private."}
 
 
+def _hash_for_log(value: str) -> str:
+    """Returns short, non-reversible digest for correlating sensitive values in logs."""
+    return hashlib.sha256(value.encode("utf-8")).hexdigest()[:12]
+
+
 @router.get("/exchange-token")
 async def exchange_token(request: Request, code: Query = Query(..., description="Exchange Token")):
     token_url = f"https://{AUTH0_DOMAIN}/oauth/token"
+    logger.info(
+        "Starting Auth0 code exchange",
+        extra={
+            "auth0_domain": AUTH0_DOMAIN,
+            "audience": AUTH0_API_AUDIENCE,
+            "code_digest": _hash_for_log(code),
+        },
+    )
     async with AsyncClient() as client:
         res = await client.post(
             token_url,
@@ -47,13 +64,26 @@ async def exchange_token(request: Request, code: Query = Query(..., description=
         )
 
         if res.status_code != 200:
+            logger.warning(
+                "Auth0 code exchange failed",
+                extra={
+                    "status_code": res.status_code,
+                    "code_digest": _hash_for_log(code),
+                },
+            )
             raise ExchangeTokenException(code=res.status_code, verbose=str(res.text))
 
         token_data = res.json()
         access_token = token_data.get("access_token")
         if not access_token:
             raise ExchangeTokenException(code=500)
-        print(code, flush=True)
-        print(access_token, flush=True)
+
         request.session["access_token"] = access_token
+        logger.info(
+            "Auth0 code exchange succeeded",
+            extra={
+                "code_digest": _hash_for_log(code),
+                "access_token_digest": _hash_for_log(access_token),
+            },
+        )
         return {"message": "Token exchanged and stored in session"}
