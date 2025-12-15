@@ -86,6 +86,7 @@ The purpose of this project is to build frame for the microservices.
 poetry install --with dev
 poetry run pytest
 ```
+- Tests automatically load configuration from `.env.test` (see `tests/conftest.py`). Adjust this file to point at staging tenants or fake credentials when needed.
 
 #### Ruff
 ```powershell

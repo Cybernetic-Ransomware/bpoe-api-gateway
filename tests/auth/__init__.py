@@ -1,0 +1,1 @@
+"""Auth router test package."""

@@ -39,13 +39,14 @@ pymdown-extensions = "^10.19.1"
 pythonpath = "./src"
 
 [tool.pytest.ini_options]
-addopts = "--junitxml=./result/pytest_result.xml --cov=src --cov-report html:result/html"
+addopts = "--junitxml=./temp/tests/pytest_result.xml --cov=src --cov-report html:temp/tests/coverage"
 filterwarnings = [
     "ignore::UserWarning",
     'ignore:function ham\(\) is deprecated:DeprecationWarning',
     "ignore:module 'sre_constants' is deprecated:DeprecationWarning",
     "ignore::SyntaxWarning",
 ]
+asyncio_default_fixture_loop_scope = "function"
 
 
 [tool.ruff]
