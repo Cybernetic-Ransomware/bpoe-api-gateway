@@ -39,7 +39,7 @@ def _hash_for_log(value: str) -> str:
 
 
 @router.get("/exchange-token")
-async def exchange_token(request: Request, code: Query = Query(..., description="Exchange Token")):
+async def exchange_token(request: Request, code: str = Query(..., description="Exchange Token")):
     token_url = f"https://{AUTH0_DOMAIN}/oauth/token"
     logger.info(
         "Starting Auth0 code exchange",
