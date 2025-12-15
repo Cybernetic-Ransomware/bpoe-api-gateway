@@ -12,59 +12,100 @@
     <pre id="output"></pre>
 
     <script>
-        const AUTH0_DOMAIN = "dev-i8o846dskrpez4ms.us.auth0.com";
-        const CLIENT_ID = "3ilPeuwCJQMUKsuLD0AeLYK9jVBym3P7";
-        const REDIRECT_URI = "http://127.0.0.1:8070/index.html";
+        const API_BASE_URL = "http://127.0.0.1:8080";
 
-        document.getElementById("login").addEventListener("click", () => {
-            window.location.href = `https://${AUTH0_DOMAIN}/authorize?` +
-                `response_type=code&` +
-                `client_id=${CLIENT_ID}&` +
-                `redirect_uri=${encodeURIComponent(REDIRECT_URI)}&` +
-                `scope=openid profile email`;
+        const outputEl = document.getElementById("output");
+
+        async function getAuthContext() {
+            const response = await fetch(`${API_BASE_URL}/log/auth/context`, {
+                method: "GET",
+                credentials: "include",
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(`Failed to fetch auth context: ${JSON.stringify(error)}`);
+            }
+
+            return response.json();
+        }
+
+        document.getElementById("login").addEventListener("click", async () => {
+            try {
+                const context = await getAuthContext();
+                const authorizeUrl = new URL(`https://${context.auth0_domain}/authorize`);
+                authorizeUrl.searchParams.set("response_type", "code");
+                authorizeUrl.searchParams.set("client_id", context.client_id);
+                authorizeUrl.searchParams.set("redirect_uri", context.redirect_uri);
+                authorizeUrl.searchParams.set("scope", "openid profile email");
+                authorizeUrl.searchParams.set("state", context.state);
+                authorizeUrl.searchParams.set("code_challenge", context.code_challenge);
+                authorizeUrl.searchParams.set("code_challenge_method", context.code_challenge_method);
+
+                sessionStorage.setItem("oauth_state", context.state);
+                window.location.href = authorizeUrl.toString();
+            } catch (error) {
+                outputEl.textContent = "Failed to start login flow: " + error.message;
+            }
         });
 
         document.getElementById("protected").addEventListener("click", async () => {
             try {
-                const response = await fetch("http://127.0.0.1:8080/log/priv", {
+                const response = await fetch(`${API_BASE_URL}/log/priv`, {
                     method: "GET",
-                    credentials: "include"
+                    credentials: "include",
                 });
 
                 if (response.ok) {
                     const data = await response.json();
-                    document.getElementById("output").textContent = JSON.stringify(data, null, 2);
+                    outputEl.textContent = JSON.stringify(data, null, 2);
                 } else {
                     const errorData = await response.json();
-                    document.getElementById("output").textContent =
-                        `Error: ${response.status} - ${JSON.stringify(errorData)}`;
+                    outputEl.textContent = `Error: ${response.status} - ${JSON.stringify(errorData)}`;
                 }
             } catch (error) {
-                document.getElementById("output").textContent =
-                    "Error calling protected endpoint: " + error.message;
+                outputEl.textContent = "Error calling protected endpoint: " + error.message;
             }
         });
 
-        if (window.location.search.includes("code")) {
-        const urlParams = new URLSearchParams(window.location.search);
-        const authCode = urlParams.get("code");
+        async function exchangeCodeIfPresent() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const authCode = urlParams.get("code");
+            const state = urlParams.get("state");
 
-        if (authCode) {
-            console.info("Redirecting to exchange-token", { codeLength: authCode.length });
-            fetch(`http://127.0.0.1:8080/log/exchange-token?code=${authCode}`, {
-                method: "GET",
-                headers: { "Content-Type": "application/json" },
-                credentials: "include",
-            })
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById("output").textContent = "Token recieved";
-            })
-            .catch(error => {
-                document.getElementById("output").textContent = "ERROR: " + error.message;
-            });
+            if (!authCode) {
+                return;
+            }
+
+            const stateInStorage = sessionStorage.getItem("oauth_state");
+            if (stateInStorage && state !== stateInStorage) {
+                outputEl.textContent = "State mismatch. Please retry login.";
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/log/exchange-token`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    credentials: "include",
+                    body: JSON.stringify({ code: authCode, state }),
+                });
+
+                sessionStorage.removeItem("oauth_state");
+
+                const data = await response.json();
+                if (response.ok) {
+                    outputEl.textContent = data.message ?? "Token received";
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                } else {
+                    outputEl.textContent = `Error: ${response.status} - ${JSON.stringify(data)}`;
+                }
+            } catch (error) {
+                outputEl.textContent = "Error exchanging token: " + error.message;
+            }
         }
-    }
+
+        exchangeCodeIfPresent();
     </script>
 </body>
 </html>
